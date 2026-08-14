@@ -1,4 +1,5 @@
 import os
+import sys
 import asyncio
 import typer
 from rich.console import Console
@@ -20,7 +21,8 @@ def main():
 @app.command()
 def scan(
     target_dir: str = typer.Argument(".", help="Directory path to scan"),
-    output: str = typer.Option(None, "--output", "-o", help="Path to export report (.json or .md)")
+    output: str = typer.Option(None, "--output", "-o", help="Path to export report (.json or .md)"),
+    strict: bool = typer.Option(False, "--strict", help="Exit with non-zero code if findings exist")
 ):
     console.print(f"\n[bold blue]🔍 Starting PyAudit scan on:[bold blue] [yellow]{target_dir}[/yellow]\n")
 
@@ -41,7 +43,7 @@ def scan(
             # 2. Secret & Credential Scanning
             all_secret_findings.extend(scan_file_for_secrets(file_path))
 
-            # 3. Dependency CVE Scanning (Matches requirements.txt, vulnerable_requirements.txt, etc.)
+            # 3. Dependency CVE Scanning
             if "requirements" in file.lower() and file.endswith(".txt"):
                 dep_results = asyncio.run(check_dependencies(file_path))
                 all_dep_findings.extend(dep_results)
@@ -76,6 +78,39 @@ def scan(
             console.print(f"[bold yellow]📄 Report exported to Markdown:[bold yellow] [green]{output}[/green]\n")
         else:
             console.print("[bold red]❌ Unsupported extension. Use .json or .md[/bold red]\n")
+
+    if strict and len(combined_findings) > 0:
+        raise typer.Exit(code=1)
+
+@app.command()
+def install_hook():
+    """Installs PyAudit as a Git pre-commit hook."""
+    git_dir = os.path.join(".", ".git")
+    if not os.path.exists(git_dir):
+        console.print("[bold red]❌ Not a Git repository. Run 'git init' first.[/bold red]\n")
+        return
+
+    hooks_dir = os.path.join(git_dir, "hooks")
+    os.makedirs(hooks_dir, exist_ok=True)
+    hook_path = os.path.join(hooks_dir, "pre-commit")
+
+    hook_script = """#!/bin/sh
+echo "🔍 Running PyAudit pre-commit security gate..."
+python -m pyaudit.cli scan . --strict
+if [ $? -ne 0 ]; then
+    echo "❌ [PyAudit] Security flaws or leaked keys detected! Commit aborted."
+    exit 1
+fi
+"""
+    with open(hook_path, "w", encoding="utf-8") as f:
+        f.write(hook_script)
+
+    try:
+        os.chmod(hook_path, 0o755)
+    except Exception:
+        pass
+
+    console.print("[bold green]✅ PyAudit pre-commit gate successfully installed in .git/hooks/pre-commit![/bold green]\n")
 
 if __name__ == "__main__":
     app()
