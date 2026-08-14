@@ -1,10 +1,12 @@
 import os
+import asyncio
 import typer
 from rich.console import Console
 from rich.table import Table
 
 from pyaudit.scanner.ast_analyzer import analyze_file
 from pyaudit.scanner.secret_scanner import scan_file_for_secrets
+from pyaudit.scanner.dep_checker import check_dependencies
 from pyaudit.reporter.export import export_to_json, export_to_markdown
 
 app = typer.Typer(help="PyAudit — Lightweight Python Security & Secret Scanner")
@@ -24,6 +26,7 @@ def scan(
 
     all_ast_findings = []
     all_secret_findings = []
+    all_dep_findings = []
 
     for root, _, files in os.walk(target_dir):
         if "venv" in root or ".venv" in root or ".git" in root or "__pycache__" in root:
@@ -31,12 +34,19 @@ def scan(
         for file in files:
             file_path = os.path.join(root, file)
 
+            # 1. AST Code Analysis (.py files)
             if file.endswith(".py"):
                 all_ast_findings.extend(analyze_file(file_path))
 
+            # 2. Secret & Credential Scanning
             all_secret_findings.extend(scan_file_for_secrets(file_path))
 
-    combined_findings = all_ast_findings + all_secret_findings
+            # 3. Dependency CVE Scanning (requirements.txt)
+            if file == "requirements.txt":
+                dep_results = asyncio.run(check_dependencies(file_path))
+                all_dep_findings.extend(dep_results)
+
+    combined_findings = all_ast_findings + all_secret_findings + all_dep_findings
 
     table = Table(title="PyAudit Security Findings")
     table.add_column("File", style="cyan")
