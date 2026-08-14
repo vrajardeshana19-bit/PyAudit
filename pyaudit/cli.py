@@ -41,8 +41,8 @@ def scan(
             # 2. Secret & Credential Scanning
             all_secret_findings.extend(scan_file_for_secrets(file_path))
 
-            # 3. Dependency CVE Scanning (requirements.txt)
-            if file == "requirements.txt":
+            # 3. Dependency CVE Scanning (Matches requirements.txt, vulnerable_requirements.txt, etc.)
+            if "requirements" in file.lower() and file.endswith(".txt"):
                 dep_results = asyncio.run(check_dependencies(file_path))
                 all_dep_findings.extend(dep_results)
 

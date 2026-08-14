@@ -16,7 +16,6 @@ async def check_dependencies(req_file_path: str) -> list[DepFinding]:
             with open(req_file_path, "r", encoding="utf-8") as f:
                 for line_idx, line in enumerate(f, start=1):
                     clean_line = line.strip()
-                    # Parse standard package==version lines
                     if clean_line and not clean_line.startswith("#") and "==" in clean_line:
                         parts = clean_line.split("==")
                         package = parts[0].strip()
