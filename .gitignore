@@ -1,0 +1,3 @@
+
+# Auto-ignored by PyAudit Remediation Engine
+tests/vulnerable_test.py
