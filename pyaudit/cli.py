@@ -10,8 +10,9 @@ from pyaudit.scanner.secret_scanner import scan_file_for_secrets
 from pyaudit.scanner.dep_checker import check_dependencies
 from pyaudit.reporter.export import export_to_json, export_to_markdown
 from pyaudit.remediator.fixer import fix_vulnerable_dependencies, apply_secret_gitignore_fix
+from pyaudit.ai.explainer import explain_finding_with_ai
 
-app = typer.Typer(help="PyAudit — Lightweight Python Security & Secret Scanner")
+app = typer.Typer(help="PyAudit — Asynchronous Python Security & Secret Scanner")
 console = Console()
 
 @app.callback()
@@ -24,7 +25,8 @@ def scan(
     target_dir: str = typer.Argument(".", help="Directory path to scan"),
     output: str = typer.Option(None, "--output", "-o", help="Path to export report (.json or .md)"),
     strict: bool = typer.Option(False, "--strict", help="Exit with non-zero code if findings exist"),
-    fix: bool = typer.Option(False, "--fix", help="Automatically attempt remediation for detected issues")
+    fix: bool = typer.Option(False, "--fix", help="Automatically attempt remediation for detected issues"),
+    explain: bool = typer.Option(False, "--explain", help="Use AI to explain findings and suggest safe refactored code")
 ):
     console.print(f"\n[bold blue]🔍 Starting PyAudit scan on:[bold blue] [yellow]{target_dir}[/yellow]\n")
 
@@ -71,18 +73,22 @@ def scan(
     console.print(table)
     console.print(f"\n[bold green]Scan complete.[bold green] Found [bold red]{len(combined_findings)}[/bold red] potential issue(s).\n")
 
+    # AI Remediation Explainer Module
+    if explain and combined_findings:
+        console.print("[bold magenta]🤖 Requesting AI Security Explanations for findings...[/bold magenta]\n")
+        for item in combined_findings:
+            asyncio.run(explain_finding_with_ai(item.file_path, item.line_number, item.issue, item.mitre_id))
+
     # Auto-Remediation Execution Engine
     if fix and combined_findings:
         console.print("[bold cyan]🛠️  Executing PyAudit Auto-Remediation Engine...[/bold cyan]\n")
         
-        # 1. Fix Vulnerable Dependencies
         for root, _, files in os.walk(target_dir):
             for file in files:
                 if "requirements" in file.lower() and file.endswith(".txt"):
                     req_path = os.path.join(root, file)
                     asyncio.run(fix_vulnerable_dependencies(req_path))
 
-        # 2. Contain Exposed Secret Files
         for secret_finding in all_secret_findings:
             apply_secret_gitignore_fix(secret_finding.file_path)
 
