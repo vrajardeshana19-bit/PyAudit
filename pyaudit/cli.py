@@ -26,7 +26,8 @@ def scan(
     output: str = typer.Option(None, "--output", "-o", help="Path to export report (.json or .md)"),
     strict: bool = typer.Option(False, "--strict", help="Exit with non-zero code if findings exist"),
     fix: bool = typer.Option(False, "--fix", help="Automatically attempt remediation for detected issues"),
-    explain: bool = typer.Option(False, "--explain", help="Use AI to explain findings and suggest safe refactored code")
+    explain: bool = typer.Option(False, "--explain", help="Use AI to explain findings and suggest safe refactored code"),
+    local: bool = typer.Option(False, "--local", help="Use local Ollama instance instead of Cloud LLM API for --explain")
 ):
     console.print(f"\n[bold blue]🔍 Starting PyAudit scan on:[bold blue] [yellow]{target_dir}[/yellow]\n")
 
@@ -73,11 +74,12 @@ def scan(
     console.print(table)
     console.print(f"\n[bold green]Scan complete.[bold green] Found [bold red]{len(combined_findings)}[/bold red] potential issue(s).\n")
 
-    # AI Remediation Explainer Module
+    # AI Remediation Explainer Module (Cloud or Local Ollama)
     if explain and combined_findings:
-        console.print("[bold magenta]🤖 Requesting AI Security Explanations for findings...[/bold magenta]\n")
+        mode_str = "Local Ollama" if local else "Cloud AI"
+        console.print(f"[bold magenta]🤖 Requesting AI Security Explanations ({mode_str})...[/bold magenta]\n")
         for item in combined_findings:
-            asyncio.run(explain_finding_with_ai(item.file_path, item.line_number, item.issue, item.mitre_id))
+            asyncio.run(explain_finding_with_ai(item.file_path, item.line_number, item.issue, item.mitre_id, local=local))
 
     # Auto-Remediation Execution Engine
     if fix and combined_findings:
