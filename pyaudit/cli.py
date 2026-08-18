@@ -11,6 +11,7 @@ from pyaudit.scanner.dep_checker import check_dependencies
 from pyaudit.reporter.export import export_to_json, export_to_markdown
 from pyaudit.remediator.fixer import fix_vulnerable_dependencies, apply_secret_gitignore_fix
 from pyaudit.ai.explainer import explain_finding_with_ai
+from pyaudit.ai.chat import start_interactive_chat
 
 app = typer.Typer(help="PyAudit — Asynchronous Python Security & Secret Scanner")
 console = Console()
@@ -138,6 +139,12 @@ fi
         pass
 
     console.print("[bold green]✅ PyAudit pre-commit gate successfully installed in .git/hooks/pre-commit![/bold green]\n")
+@app.command()
+def chat(
+    local: bool = typer.Option(False, "--local", help="Use local Ollama instance (offline) for the AI chat session")
+):
+    """Starts an interactive terminal session with PyAudit AI Assistant."""
+    start_interactive_chat(local=local)
 
 if __name__ == "__main__":
     app()
