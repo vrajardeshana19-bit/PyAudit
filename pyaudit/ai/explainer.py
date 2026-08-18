@@ -1,12 +1,12 @@
 import os
-import httpx
+from google import genai
 from rich.console import Console
 from rich.panel import Panel
 
 console = Console()
 
 async def explain_finding_with_ai(file_path: str, line_number: int, issue: str, mitre_id: str):
-    """Calls Gemini REST API to explain the security finding and provide a safe code fix."""
+    """Uses the official Google GenAI SDK to generate security explanations and fix recommendations."""
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         console.print("[bold red]⚠️ GEMINI_API_KEY environment variable not found. Skipping AI explanation.[/bold red]")
@@ -37,24 +37,32 @@ async def explain_finding_with_ai(file_path: str, line_number: int, issue: str, 
     Keep the output clean and markdown-formatted.
     """
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={api_key}"
-    payload = {"contents": [{"parts": [{"text": prompt}]}]}
-
     try:
-        async with httpx.AsyncClient() as client:
-            response = await client.post(url, json=payload, timeout=10.0)
-            if response.status_code == 200:
-                data = response.json()
-                explanation = data["candidates"][0]["content"]["parts"][0]["text"]
-                
-                panel = Panel(
-                    explanation,
-                    title=f"[bold green]🤖 PyAudit AI Security Insights — {file_path}:{line_number}[/bold green]",
-                    border_style="magenta",
-                    expand=False
+        client = genai.Client(api_key=api_key)
+        
+        # Retry up to 3 times on 503 server spikes
+        for attempt in range(3):
+            try:
+                response = client.models.generate_content(
+                    model="gemini-3.6-flash",
+                    contents=prompt,
                 )
-                console.print(panel)
-            else:
-                console.print(f"[bold red]❌ AI API request failed ({response.status_code}): {response.text}[/bold red]")
+                break
+            except Exception as e:
+                if "503" in str(e) and attempt < 2:
+                    import asyncio
+                    await asyncio.sleep(2)
+                    continue
+                raise e
+        if response and response.text:
+            panel = Panel(
+                response.text,
+                title=f"[bold green]🤖 PyAudit AI Security Insights — {file_path}:{line_number}[/bold green]",
+                border_style="magenta",
+                expand=False
+            )
+            console.print(panel)
+        else:
+            console.print("[bold red]❌ Empty response received from Gemini API.[/bold red]")
     except Exception as e:
-        console.print(f"[bold red]❌ Error generating AI explanation: {e}[/bold red]")
+        console.print(f"[bold red]❌ AI Explanation Engine Error: {e}[/bold red]")
