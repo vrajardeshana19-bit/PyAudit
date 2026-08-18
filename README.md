@@ -1,178 +1,612 @@
-Here is the complete, single-block `README.md` text with a dedicated **👨‍💻 Built by Vraj Ardeshana** section highlighting your role, contributions, technical impact, and leadership:
-
-```markdown
 # 🛡️ PyAudit — DevSecOps Static Security & Secret Scanner
 
-![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
+![Python Version](https://img.shields.io/badge/Python-3.10%2B-blue)
+![License](https://img.shields.io/badge/License-MIT-green)
 ![AI Engine](https://img.shields.io/badge/AI-Gemini%20%7C%20Ollama-magenta)
+![Security](https://img.shields.io/badge/Security-DevSecOps-red)
 ![Maintainer](https://img.shields.io/badge/Built%20By-Vraj%20Ardeshana-brightgreen)
 
-**PyAudit** is an asynchronous Python security analysis tool designed to detect vulnerabilities, scan for leaked API secrets, audit dependency CVEs, and automatically fix security flaws. Powered by a hybrid AI engine (Google Gemini Cloud & local Ollama), PyAudit provides real-time vulnerability explanations, refactored safe code suggestions, and an interactive DevSecOps terminal assistant.
+**PyAudit** is an asynchronous Python-based DevSecOps security analysis tool designed to identify common security vulnerabilities, detect leaked secrets, audit dependencies, provide AI-powered security explanations, and assist with automated remediation.
+
+It combines **AST-based static analysis, secret detection, dependency security analysis, automated remediation, Git security hooks, and a hybrid AI engine** supporting both cloud-based Google Gemini and local Ollama models.
 
 ---
 
-## 👨‍💻 Built by Vraj Ardeshana
+## 🚀 Why PyAudit?
 
-**PyAudit** was designed, architected, and built by **Vraj Ardeshana** — Computer Science Engineering student (CMRIT, Bengaluru), Club Secretary & Promotion Head at RISE, and DevSecOps / Security Engineering builder.
+Modern applications can accidentally introduce security vulnerabilities through:
 
-### 🚀 Key Technical Contributions & What I Worked On:
-- **Core Security Engine**: Implemented AST static analysis parsing (`ast.parse`) to detect dangerous execution sinks (`eval()`, `exec()`, `subprocess`) mapped directly to **MITRE ATT&CK IDs**.
-- **Secret & Credential Detection**: Engineered high-entropy calculation algorithms and regex pattern matching to flag leaked AWS keys, API tokens, and private keys.
-- **Asynchronous SCA Dependency Checker**: Built async PyPI API query modules (`httpx`, `asyncio`) to check project dependencies against known CVE databases.
-- **Active Remediation Engine (`--fix`)**: Developed auto-remediation features that automatically patch `.gitignore` files to block secret exposure and upgrade vulnerable requirements packages.
-- **Hybrid AI Engine (`--explain` / `chat`)**: Designed dual-execution AI integration using the official **Google GenAI SDK** for cloud analysis and direct **Ollama REST APIs** for 100% offline, privacy-first local LLM inference.
-- **CLI & UX Polish**: Formatted terminal output with `Rich` library components, including syntax-highlighted Markdown panels, dynamic loading spinners, and quiet logging wrappers.
+* Dangerous Python functions
+* Hardcoded API keys and credentials
+* Vulnerable dependencies
+* Weak cryptographic practices
+* Unsafe subprocess execution
+* Secrets accidentally committed to Git
+* Misconfigured project files
+
+PyAudit provides a lightweight security layer that developers can run directly from their terminal before code reaches production.
+
+### Core Workflow
+
+```text
+Developer Project
+       │
+       ▼
+   PyAudit CLI
+       │
+       ├── AST Static Analysis
+       │
+       ├── Secret Detection
+       │
+       ├── Dependency Audit
+       │
+       ├── Security Risk Analysis
+       │
+       ├── AI Explanation
+       │
+       └── Automated Remediation
+              │
+              ▼
+       Secure Developer Workflow
+```
 
 ---
 
 ## ✨ Features
 
-- **🔍 AST Static Analysis**: Parses Python Abstract Syntax Trees (`ast`) to catch dangerous execution sinks (`eval()`, `exec()`, `shell=True`, weak cryptography) tagged with **MITRE ATT&CK IDs**.
-- **🔑 Secret & Credential Detection**: High-entropy analysis and pattern matching for leaked API keys, tokens, and private credentials.
-- **📦 SCA & Dependency Audit**: Asynchronously queries vulnerability databases to flag outdated or compromised Python dependencies.
-- **🛠️ Active Auto-Remediation (`--fix`)**: Upgrades vulnerable dependencies automatically and patches `.gitignore` to prevent secret leaks.
-- **🤖 Hybrid AI Explainer (`--explain`)**: Contextual AI explanations and safe code refactoring snippets via **Google Gemini SDK (Cloud)** or **Ollama (Local Offline Mode)**.
-- **💬 Interactive Terminal Assistant (`pyaudit chat`)**: Built-in DevSecOps AI chatbot with syntax highlighting and animated progress spinners.
-- **⚡ Git Pre-commit Security Gate (`install-hook`)**: Automatically blocks vulnerable commits before code leaves your local environment.
+### 🔍 AST Static Security Analysis
+
+PyAudit parses Python source code using Python's built-in `ast` module to identify potentially dangerous patterns without executing the analyzed code.
+
+It can detect patterns such as:
+
+* `eval()`
+* `exec()`
+* Unsafe `subprocess` usage
+* `shell=True`
+* Weak cryptographic algorithms
+* Other potentially dangerous execution patterns
+
+Detected vulnerabilities can be mapped to relevant **MITRE ATT&CK techniques**.
 
 ---
 
-## 🚀 Quick Start
+### 🔑 Secret & Credential Detection
 
-### 1. Installation
+PyAudit scans source files for accidentally exposed credentials and secrets.
 
-Clone the repository and install dependencies in a virtual environment:
+Detection combines:
 
-```bash
-git clone [https://github.com/vrajardeshana19-bit/PyAudit.git](https://github.com/vrajardeshana19-bit/PyAudit.git)
-cd PyAudit
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+* Regex pattern matching
+* Secret-specific patterns
+* Entropy analysis
+* API token detection
+* Private key detection
+* Cloud credential detection
 
-```
+Examples include:
 
-### 2. Set Up API Key (Optional for Cloud AI)
+* AWS-style access keys
+* API tokens
+* Authentication credentials
+* Private keys
+* High-entropy strings
 
-To enable Cloud AI explanations using Google Gemini:
-
-```bash
-# On Linux/macOS
-export GEMINI_API_KEY="your_google_ai_studio_api_key"
-
-# On Windows (PowerShell)
-$env:GEMINI_API_KEY="your_google_ai_studio_api_key"
-
-```
-
-> **Note**: For 100% offline analysis, run PyAudit with the `--local` flag to route requests through a locally running [Ollama](https://ollama.com/) instance (`llama3.2` or `qwen2.5-coder`).
+The goal is to catch secrets before they are committed to a repository.
 
 ---
 
-## 🛠️ Usage & Commands
+### 📦 Software Composition Analysis
 
-### 🔍 Scan a Directory
+PyAudit can inspect Python project dependencies and perform asynchronous security checks.
 
-Perform security static analysis on your project:
+The dependency analysis can identify:
+
+* Outdated packages
+* Potentially vulnerable dependencies
+* Package version issues
+* Dependencies requiring security updates
+
+Asynchronous requests using `asyncio` and `httpx` allow dependency checks to be performed efficiently.
+
+---
+
+### 🛠️ Automated Remediation
+
+PyAudit includes an active remediation mode through:
 
 ```bash
-python -m pyaudit.cli scan .
-
+--fix
 ```
 
-### 🤖 AI Security Explainer (Cloud or Local)
+Depending on the detected issue, PyAudit can assist with actions such as:
 
-Request AI-driven vulnerability breakdowns and secure refactored code snippets:
+* Updating vulnerable dependency versions
+* Adding secret-related patterns to `.gitignore`
+* Reducing the chance of accidentally committing credentials
+
+Always review automatically generated changes before committing them to production repositories.
+
+---
+
+### 🤖 Hybrid AI Security Engine
+
+PyAudit supports two AI execution modes.
+
+#### ☁️ Cloud Mode
+
+Uses Google's Gemini API to provide:
+
+* Vulnerability explanations
+* Security recommendations
+* Safer code suggestions
+* Context-aware remediation guidance
+
+#### 💻 Local Mode
+
+Uses Ollama to run supported local LLMs directly on the developer's machine.
+
+This allows AI-assisted analysis without sending source code to a cloud AI service.
+
+Example:
 
 ```bash
-# Cloud Mode (Google Gemini API)
-python -m pyaudit.cli scan . --explain
-
-# Local Mode (Offline via Ollama)
 python -m pyaudit.cli scan . --explain --local
-
 ```
 
-### 🛠️ Auto-Remediate Vulnerabilities
+---
 
-Automatically patch `.gitignore` and upgrade vulnerable requirements:
+### 💬 Interactive DevSecOps Assistant
 
-```bash
-python -m pyaudit.cli scan . --fix
-
-```
-
-### 💬 Interactive Terminal Security Chatbot
-
-Launch a conversational DevSecOps AI assistant right in your shell:
+PyAudit includes an interactive terminal assistant:
 
 ```bash
-# Cloud Chat
 python -m pyaudit.cli chat
-
-# Local Offline Chat
-python -m pyaudit.cli chat --local
-
 ```
 
-### 📄 Export Security Reports
+It provides a conversational interface for discussing security findings and development-security questions directly from the terminal.
 
-Export scan results to JSON or Markdown:
+For local/offline AI:
 
 ```bash
-python -m pyaudit.cli scan . -o report.json
-python -m pyaudit.cli scan . -o report.md
-
+python -m pyaudit.cli chat --local
 ```
 
-### 🔒 Install Git Pre-commit Security Hook
+---
 
-Enforce strict security checks before every Git commit:
+### ⚡ Git Pre-Commit Security Gate
+
+PyAudit can install a Git pre-commit hook that performs security checks before code is committed.
+
+Install it using:
 
 ```bash
 python -m pyaudit.cli install-hook
+```
 
+This creates an additional security checkpoint in the development workflow.
+
+---
+
+## 👨‍💻 Built By
+
+**Vraj Ardeshana**
+
+Computer Science Engineering student and technology builder focused on **DevSecOps, cybersecurity, AI-powered developer tools, and software engineering**.
+
+### Key Technical Contributions
+
+* Designed the core AST-based security analysis engine.
+* Implemented detection of dangerous Python execution patterns.
+* Integrated security findings with MITRE ATT&CK references.
+* Developed secret detection using pattern matching and entropy analysis.
+* Implemented asynchronous dependency analysis.
+* Developed automated remediation functionality.
+* Integrated Google Gemini for cloud-based AI security analysis.
+* Integrated Ollama for local AI inference.
+* Built the interactive DevSecOps terminal assistant.
+* Implemented Rich-based terminal output and security reporting.
+* Developed Git pre-commit security integration.
+
+---
+
+# 🚀 Quick Start
+
+## 1. Clone the Repository
+
+```bash
+git clone https://github.com/vrajardeshana19-bit/PyAudit.git
+cd PyAudit
 ```
 
 ---
 
-## 🏗️ Architecture Overview
+## 2. Create a Virtual Environment
+
+### Windows
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+```
+
+### Linux / macOS
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+```
+
+---
+
+## 3. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+# 🔐 AI Configuration
+
+AI functionality is optional.
+
+## Google Gemini
+
+To use cloud-based AI explanations, configure your Gemini API key.
+
+### Windows PowerShell
+
+```powershell
+$env:GEMINI_API_KEY="your_google_ai_studio_api_key"
+```
+
+### Linux / macOS
+
+```bash
+export GEMINI_API_KEY="your_google_ai_studio_api_key"
+```
+
+Do not commit your API key to GitHub.
+
+For production development, use environment variables or a secure secret-management solution.
+
+---
+
+# 💻 Local AI with Ollama
+
+PyAudit can use Ollama for local AI inference.
+
+Install and configure Ollama separately, then download a compatible model.
+
+For example:
+
+```bash
+ollama pull llama3.2
+```
+
+or:
+
+```bash
+ollama pull qwen2.5-coder
+```
+
+Then run PyAudit in local mode:
+
+```bash
+python -m pyaudit.cli scan . --explain --local
+```
+
+Local mode is designed to keep AI analysis on the developer's machine.
+
+---
+
+# 🛠️ Usage
+
+## 🔍 Scan a Project
+
+Run a security scan against the current directory:
+
+```bash
+python -m pyaudit.cli scan .
+```
+
+---
+
+## 🤖 Scan with AI Explanations
+
+### Cloud AI
+
+```bash
+python -m pyaudit.cli scan . --explain
+```
+
+### Local AI
+
+```bash
+python -m pyaudit.cli scan . --explain --local
+```
+
+---
+
+## 🛠️ Automatically Remediate Findings
+
+```bash
+python -m pyaudit.cli scan . --fix
+```
+
+Review all automatically modified files before committing changes.
+
+---
+
+## 💬 Start the Security Assistant
+
+### Cloud Mode
+
+```bash
+python -m pyaudit.cli chat
+```
+
+### Local Mode
+
+```bash
+python -m pyaudit.cli chat --local
+```
+
+---
+
+## 📄 Export Scan Results
+
+### JSON
+
+```bash
+python -m pyaudit.cli scan . -o report.json
+```
+
+### Markdown
+
+```bash
+python -m pyaudit.cli scan . -o report.md
+```
+
+---
+
+## 🔒 Install the Git Security Hook
+
+```bash
+python -m pyaudit.cli install-hook
+```
+
+After installation, PyAudit can perform security checks as part of the Git commit workflow.
+
+---
+
+# 🏗️ Architecture
 
 ```text
-PyAudit CLI Tool
-├── Scanner Engine
-│   ├── AST Analyzer (Dangerous calls, MITRE ATT&CK tagging)
-│   ├── Secret Scanner (High entropy + Pattern matching)
-│   └── SCA Dependency Checker (Async PyPI/CVE lookups)
-├── Remediation Engine (--fix)
-│   ├── Requirements version upgrader
-│   └── .gitignore patcher
-├── Hybrid AI Engine (--explain / chat)
-│   ├── Cloud Mode (Google GenAI SDK)
-│   └── Local Mode (Ollama REST API via httpx)
-└── Integration & Reporting
-    ├── Rich Terminal UI (Markdown panels & spinners)
-    ├── JSON / Markdown Exporter
-    └── Git Pre-commit Hook Installer
-
+                         ┌──────────────────────┐
+                         │      PyAudit CLI     │
+                         └──────────┬───────────┘
+                                    │
+                ┌───────────────────┼───────────────────┐
+                │                   │                   │
+                ▼                   ▼                   ▼
+        ┌───────────────┐   ┌───────────────┐   ┌───────────────┐
+        │ AST Analyzer  │   │ Secret Scanner│   │ Dependency    │
+        │               │   │               │   │ Analyzer      │
+        └───────┬───────┘   └───────┬───────┘   └───────┬───────┘
+                │                   │                   │
+                └───────────────────┼───────────────────┘
+                                    ▼
+                         ┌──────────────────────┐
+                         │ Security Findings    │
+                         └──────────┬───────────┘
+                                    │
+                   ┌────────────────┼────────────────┐
+                   │                │                │
+                   ▼                ▼                ▼
+           ┌─────────────┐  ┌──────────────┐  ┌──────────────┐
+           │ AI Engine   │  │ Remediation  │  │ Reporting    │
+           │             │  │ Engine       │  │              │
+           └──────┬──────┘  └──────┬───────┘  └──────┬───────┘
+                  │                │                 │
+          ┌───────┴───────┐        │        ┌────────┴────────┐
+          │               │        │        │                 │
+          ▼               ▼        ▼        ▼                 ▼
+       Gemini          Ollama   --fix     JSON            Markdown
 ```
 
 ---
 
-## 🛡️ Security & Privacy
+# 📂 Project Structure
 
-PyAudit is built with **enterprise privacy constraints** in mind:
+```text
+PyAudit/
+│
+├── pyaudit/
+│   ├── __init__.py
+│   ├── cli.py
+│   │
+│   ├── scanner/
+│   │   ├── ast_analyzer.py
+│   │   ├── secret_scanner.py
+│   │   └── dependency_checker.py
+│   │
+│   ├── ai/
+│   │   ├── gemini.py
+│   │   └── ollama.py
+│   │
+│   ├── remediation/
+│   │   └── fixer.py
+│   │
+│   └── reporting/
+│       ├── json_report.py
+│       └── markdown_report.py
+│
+├── tests/
+│
+├── requirements.txt
+├── README.md
+├── LICENSE
+└── .gitignore
+```
 
-* Local scanning performs static AST parsing on your machine without transmitting code anywhere.
-* Running `--local` ensures that all AI explanations and interactive chat sessions remain **100% offline** on your local machine using Ollama.
+> The exact project structure may evolve as PyAudit develops.
 
 ---
 
-## 📜 License
+# 🛡️ Security & Privacy
 
-Distributed under the MIT License. See `LICENSE` for more information.
+PyAudit follows a privacy-focused approach to security analysis.
 
+### Local Static Analysis
+
+AST parsing and local security checks are performed on the developer's machine.
+
+Source code is not required to be uploaded to a remote server for basic static analysis.
+
+### Local AI Mode
+
+When using:
+
+```bash
+--local
 ```
 
+AI requests are routed through a locally running Ollama instance rather than a cloud AI provider.
+
+This is useful when working with:
+
+* Proprietary source code
+* Internal projects
+* Sensitive development environments
+* Code that should remain on the local machine
+
+### API Keys
+
+Never commit API keys or credentials to GitHub.
+
+Use environment variables for sensitive configuration.
+
+---
+
+# ⚠️ Important Notes
+
+PyAudit is a developer security tool and should be treated as an additional security layer rather than a replacement for a complete security program.
+
+Static analysis can produce:
+
+* False positives
+* False negatives
+* Findings requiring manual review
+
+Security findings should therefore be validated before taking production actions.
+
+---
+
+# 🧪 Example Workflow
+
+A typical developer workflow can look like this:
+
+```text
+1. Write Code
+      │
+      ▼
+2. Run PyAudit
+      │
+      ▼
+3. Detect Vulnerabilities
+      │
+      ▼
+4. Review Findings
+      │
+      ├── Safe ───────────────► Continue
+      │
+      └── Vulnerable
+                │
+                ▼
+        AI Security Explanation
+                │
+                ▼
+        Automated Remediation
+                │
+                ▼
+        Developer Review
+                │
+                ▼
+        Git Pre-Commit Check
+                │
+                ▼
+             Commit
 ```
+
+---
+
+# 🎯 Project Goals
+
+PyAudit aims to make security analysis more accessible to developers by bringing essential DevSecOps capabilities directly into the development workflow.
+
+Future development areas may include:
+
+* Expanded vulnerability rules
+* More secret detection patterns
+* Improved dependency intelligence
+* Additional programming language support
+* SARIF report generation
+* CI/CD integrations
+* GitHub Actions integration
+* Improved vulnerability prioritization
+* Security dashboards
+* Additional local LLM support
+
+---
+
+# 🤝 Contributing
+
+Contributions, bug reports, feature requests, and security improvements are welcome.
+
+### Basic contribution workflow
+
+```bash
+git clone https://github.com/vrajardeshana19-bit/PyAudit.git
+cd PyAudit
+
+git checkout -b feature/your-feature
+
+# Make your changes
+
+git add .
+git commit -m "Add: your feature"
+
+git push origin feature/your-feature
+```
+
+Then open a Pull Request on GitHub.
+
+---
+
+# 📜 License
+
+PyAudit is distributed under the **MIT License**.
+
+See the [`LICENSE`](LICENSE) file for more information.
+
+---
+
+# ⭐ Support the Project
+
+If you find PyAudit useful:
+
+* ⭐ Star the repository
+* 🐛 Report bugs
+* 💡 Suggest improvements
+* 🔧 Contribute features
+* 📢 Share the project with other developers
+
+---
+
+## 🛡️ PyAudit
+
+**Security scanning for developers, built for the DevSecOps workflow.**
+
+Built with ❤️ by **Vraj Ardeshana**
