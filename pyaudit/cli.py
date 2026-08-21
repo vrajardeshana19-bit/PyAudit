@@ -12,7 +12,11 @@ from pyaudit.reporter.export import export_to_json, export_to_markdown
 from pyaudit.remediator.fixer import fix_vulnerable_dependencies, apply_secret_gitignore_fix
 from pyaudit.ai.explainer import explain_finding_with_ai
 from pyaudit.ai.chat import start_interactive_chat
+import typer
+from dotenv import load_dotenv
 
+# Load environment variables from .env
+load_dotenv()
 app = typer.Typer(help="PyAudit — Asynchronous Python Security & Secret Scanner")
 console = Console()
 

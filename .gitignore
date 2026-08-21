@@ -1,3 +1,33 @@
 
 # Auto-ignored by PyAudit Remediation Engine
 tests/vulnerable_test.py
+.env
+.venv/
+__pycache__/
+.env
+.venv/
+.venv-1/
+.venv-2/
+venv/
+__pycache__/
+*.pyc
+.env
+.venv/
+.venv-1/
+.venv-2/
+venv/
+pyaudit/venv/
+__pycache__/
+*.pyc
+.env
+.venv/
+.venv-1/
+.venv-2/
+venv/
+pyaudit/venv/
+__pycache__/
+*.pyc
+scan_report.json
+
+__pycache__/
+*.pyc

@@ -27,6 +27,11 @@ def calculate_shannon_entropy(data: str) -> float:
 
 def scan_file_for_secrets(file_path: str) -> list[SecretFinding]:
     findings = []
+    
+    # Skip markdown, documentation, text, and git files
+    if str(file_path).endswith(('.md', '.txt', '.gitignore', '.json')):
+        return findings
+
     try:
         with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
             for line_idx, line in enumerate(f, start=1):
@@ -58,4 +63,5 @@ def scan_file_for_secrets(file_path: str) -> list[SecretFinding]:
                         )
     except Exception:
         pass
+
     return findings
